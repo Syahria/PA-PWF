@@ -5,15 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
     public function index()
     {
-        // Ambil semua data galeri dari database
         $galleries = Gallery::all();
-
-        // Kirim data galeri ke tampilan
         return view('admin.gallery.index', compact('galleries'));
     }
 
@@ -27,18 +25,31 @@ class GalleryController extends Controller
         $request->validate([
             'title' => 'required',
             'description' => 'required',
-            'image' => 'required|image',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $imagePath = $request->file('image')->store('public/images');
+        if ($request->hasFile('image')) {
+            // Dapatkan file
+            $image = $request->file('image');
+            
+            // Generate nama unik untuk file
+            $fileName = time() . '_' . $image->getClientOriginalName();
+            
+            // Simpan file ke storage/app/public/images
+            $imagePath = $image->storeAs('images', $fileName, 'public');
 
-        Gallery::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'image_path' => $imagePath,
-        ]);
+            // Buat record di database
+            Gallery::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'image_path' => $imagePath
+            ]);
 
-        return redirect()->route('gallery.index');
+            return redirect()->route('gallery.index')
+                ->with('success', 'Galeri berhasil ditambahkan!');
+        }
+
+        return back()->with('error', 'Gagal mengupload gambar!');
     }
 
     public function edit($id)
@@ -49,15 +60,52 @@ class GalleryController extends Controller
 
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
         $gallery = Gallery::findOrFail($id);
-        $gallery->update($request->all());
-        return redirect()->route('gallery.index');
+
+        // Update data dasar
+        $gallery->title = $request->title;
+        $gallery->description = $request->description;
+
+        // Jika ada file gambar baru
+        if ($request->hasFile('image')) {
+            // Hapus file lama jika ada
+            if ($gallery->image_path && Storage::disk('public')->exists($gallery->image_path)) {
+                Storage::disk('public')->delete($gallery->image_path);
+            }
+
+            // Upload file baru
+            $image = $request->file('image');
+            $fileName = time() . '_' . $image->getClientOriginalName();
+            $imagePath = $image->storeAs('images', $fileName, 'public');
+            
+            // Update path gambar
+            $gallery->image_path = $imagePath;
+        }
+
+        $gallery->save();
+
+        return redirect()->route('gallery.index')
+            ->with('success', 'Galeri berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $gallery = Gallery::findOrFail($id);
+        
+        // Hapus file gambar dari storage
+        if ($gallery->image_path && Storage::disk('public')->exists($gallery->image_path)) {
+            Storage::disk('public')->delete($gallery->image_path);
+        }
+
         $gallery->delete();
-        return redirect()->route('gallery.index');
+
+        return redirect()->route('gallery.index')
+            ->with('success', 'Galeri berhasil dihapus!');
     }
 }
