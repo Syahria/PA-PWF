@@ -1,0 +1,15 @@
+html, body {
+    height: 100%; /* Memastikan html dan body mengisi seluruh tinggi layar */
+    margin: 0; /* Menghilangkan margin default */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto; /* Memastikan footer berada di bagian bawah */
+    width: 100%;
+}
+
