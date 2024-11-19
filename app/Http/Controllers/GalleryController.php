@@ -108,4 +108,10 @@ class GalleryController extends Controller
         return redirect()->route('gallery.index')
             ->with('success', 'Galeri berhasil dihapus!');
     }
+    public function wisata()
+{
+    $galleries = Gallery::all(); // Mengambil semua data galeri
+    return view('wisata', compact('galleries'));
+}
+
 }
