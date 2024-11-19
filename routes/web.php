@@ -19,7 +19,7 @@ Route::resource('profile_desa', ProfileDesaController::class);
 Route::get('/fasilitas', [FasilitasController::class, 'index'])->name('fasilitas');
 
 Route::get('/wisata', [WisataController::class, 'index'])->name('wisata');
-
+Route::get('/wisata', [GalleryController::class, 'wisata'])->name('wisata');
 // Rute untuk menampilkan form login
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 
