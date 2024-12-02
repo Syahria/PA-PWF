@@ -8,6 +8,7 @@ use App\Http\Controllers\FasilitasController;
 use App\Http\Controllers\WisataController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\ChatController;
 
 
 Route::get('/', [HomeController::class, 'index']);
@@ -42,4 +43,10 @@ Route::middleware('auth')->prefix('admin')->name('gallery.')->group(function () 
     Route::get('/gallery/{id}/edit', [GalleryController::class, 'edit'])->name('edit');
     Route::put('/gallery/{id}', [GalleryController::class, 'update'])->name('update');
     Route::delete('/gallery/{id}', [GalleryController::class, 'destroy'])->name('destroy');
+});
+
+Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+
+Route::get('/chat', function () {
+    return view('chat');
 });
